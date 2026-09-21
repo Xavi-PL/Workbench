@@ -10,22 +10,21 @@ give a size budget and let it find the quality that fits.
 
 ## Prerequisite
 
-The CLI must be built once:
+The `wb` command must be on PATH. From the workbench repo:
 
 ```bash
-cd "${CLAUDE_PLUGIN_ROOT}" && pnpm install && pnpm build
+pnpm install && pnpm build
+ln -sf "$PWD/packages/cli/dist/index.js" /opt/homebrew/bin/wb
 ```
 
 ## Usage
 
 ```bash
 # quality knob: higher means better and larger
-node "${CLAUDE_PLUGIN_ROOT}/packages/cli/dist/index.js" compress \
-  hero.jpg --quality 70 --out ./optimised --json
+wb compress hero.jpg --quality 70 --out ./optimised --json
 
 # size budget: finds the highest quality that fits
-node "${CLAUDE_PLUGIN_ROOT}/packages/cli/dist/index.js" compress \
-  hero.jpg --max-size 200kb --out ./optimised --json
+wb compress hero.jpg --max-size 200kb --out ./optimised --json
 ```
 
 ## Options

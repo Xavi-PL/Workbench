@@ -9,17 +9,17 @@ Changes image format in batch, using sharp. SVG is rasterised on the way in.
 
 ## Prerequisite
 
-The CLI must be built once:
+The `wb` command must be on PATH. From the workbench repo:
 
 ```bash
-cd "${CLAUDE_PLUGIN_ROOT}" && pnpm install && pnpm build
+pnpm install && pnpm build
+ln -sf "$PWD/packages/cli/dist/index.js" /opt/homebrew/bin/wb
 ```
 
 ## Usage
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/packages/cli/dist/index.js" convert \
-  logo.svg photo.png --format webp --out ./converted --json
+wb convert logo.svg photo.png --format webp --out ./converted --json
 ```
 
 ## Options

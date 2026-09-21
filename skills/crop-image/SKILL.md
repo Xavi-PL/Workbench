@@ -9,17 +9,17 @@ Crops or pads images to an aspect ratio, in batch, using sharp.
 
 ## Prerequisite
 
-The CLI must be built once:
+The `wb` command must be on PATH. From the workbench repo:
 
 ```bash
-cd "${CLAUDE_PLUGIN_ROOT}" && pnpm install && pnpm build
+pnpm install && pnpm build
+ln -sf "$PWD/packages/cli/dist/index.js" /opt/homebrew/bin/wb
 ```
 
 ## Usage
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/packages/cli/dist/index.js" crop \
-  photo.jpg other.png --ratio 16:9 --out ./cropped --json
+wb crop photo.jpg other.png --ratio 16:9 --out ./cropped --json
 ```
 
 Takes any number of input files. Pass `--json` to read back what was written.

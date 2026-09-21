@@ -10,17 +10,17 @@ function of the name, so the same person always gets the same avatar.
 
 ## Prerequisite
 
-The CLI must be built once:
+The `wb` command must be on PATH. From the workbench repo:
 
 ```bash
-cd "${CLAUDE_PLUGIN_ROOT}" && pnpm install && pnpm build
+pnpm install && pnpm build
+ln -sf "$PWD/packages/cli/dist/index.js" /opt/homebrew/bin/wb
 ```
 
 ## Usage
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/packages/cli/dist/index.js" avatar \
-  --name "Xavi Pineda" --out ./avatars --size 512 --format webp --json
+wb avatar --name "Xavi Pineda" --out ./avatars --size 512 --format webp --json
 ```
 
 Pass `--json` whenever you need to read back what was written; it returns each
