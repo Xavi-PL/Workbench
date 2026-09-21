@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Agent skills, a CLI, and a local studio UI for image and promo tooling.",
   "engines": {
-    "node": ">=22"
+    "node": ">=20.19"
   },
   "scripts": {
     "build": "pnpm -r build",
