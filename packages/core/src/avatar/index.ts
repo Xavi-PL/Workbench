@@ -4,6 +4,7 @@ import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 
 import type { OperationResult, OutputFormat, WrittenFile } from "../types.js";
+import { EXTENSION, slugify } from "../format.js";
 import { extractInitials } from "./initials.js";
 import { pickTextColor } from "./color.js";
 import { angleFor, paletteByName, paletteFor } from "./palette.js";
@@ -35,23 +36,7 @@ export interface AvatarOptions {
   background?: string;
 }
 
-const EXTENSION: Record<OutputFormat, string> = {
-  png: "png",
-  jpeg: "jpg",
-  webp: "webp",
-  avif: "avif",
-  svg: "svg",
-};
 
-export function slugify(value: string): string {
-  const slug = value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug === "" ? "avatar" : slug;
-}
 
 async function encode(
   png: Buffer,
