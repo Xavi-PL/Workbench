@@ -5,6 +5,7 @@ import type { Sharp } from "sharp";
 
 import type { OperationResult, RasterFormat, WrittenFile } from "../types.js";
 import { EXTENSION, baseNameOf, formatFromPath } from "../format.js";
+import { encodeImage } from "../encode.js";
 import { parseRatio, ratioValue, type Ratio } from "./ratio.js";
 
 /** Where the crop window sits, or how sharp should choose it. */
@@ -103,23 +104,6 @@ export function targetBox(
     : { width: source.width, height: Math.round(source.width / target) };
 }
 
-async function encode(
-  pipeline: Sharp,
-  format: RasterFormat,
-  background: string,
-  quality: number,
-): Promise<Buffer> {
-  switch (format) {
-    case "jpeg":
-      return pipeline.flatten({ background }).jpeg({ quality, mozjpeg: true }).toBuffer();
-    case "png":
-      return pipeline.png().toBuffer();
-    case "webp":
-      return pipeline.webp({ quality }).toBuffer();
-    case "avif":
-      return pipeline.avif({ quality }).toBuffer();
-  }
-}
 
 /** Crop or pad images to a target aspect ratio. */
 export async function cropImage(options: CropOptions): Promise<OperationResult> {
@@ -173,7 +157,7 @@ export async function cropImage(options: CropOptions): Promise<OperationResult> 
     });
     if (keepMetadata) work = work.withMetadata();
 
-    const data = await encode(work, format, background, quality);
+    const data = await encodeImage(work, { format, quality, background });
     const target = path.join(
       outDir,
       `${baseNameOf(input)}-${ratio.slug}.${EXTENSION[format]}`,

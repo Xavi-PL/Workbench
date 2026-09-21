@@ -2,6 +2,7 @@
 import { Command } from "commander";
 
 import { registerAvatar } from "./commands/avatar.js";
+import { registerConvert } from "./commands/convert.js";
 import { registerCrop } from "./commands/crop.js";
 
 const program = new Command();
@@ -13,5 +14,6 @@ program
 
 registerAvatar(program);
 registerCrop(program);
+registerConvert(program);
 
 await program.parseAsync(process.argv);
