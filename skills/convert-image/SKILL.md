@@ -50,6 +50,9 @@ node "${CLAUDE_PLUGIN_ROOT}/packages/cli/dist/index.js" convert \
 - **EXIF is stripped by default**, which also removes GPS coordinates.
 - **Refuses to overwrite its source**, so `convert a.png --format png` into the
   same directory errors rather than destroying the original.
+- **Refuses colliding batches.** Output names come from the input's basename,
+  so `a/logo.png` and `b/logo.svg` in one run would both want `logo.webp`. That
+  errors up front rather than silently writing only the last one.
 
 ## When not to use this
 

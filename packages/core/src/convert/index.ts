@@ -3,7 +3,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 import type { OperationResult, RasterFormat, WrittenFile } from "../types.js";
-import { EXTENSION, baseNameOf } from "../format.js";
+import { EXTENSION, assertUniqueTargets, baseNameOf } from "../format.js";
 import { encodeImage } from "../encode.js";
 
 export interface ConvertOptions {
@@ -51,22 +51,30 @@ export async function convertImage(
   }
   await mkdir(outDir, { recursive: true });
 
+  const targets = inputs.map((input) => ({
+    input,
+    target: path.join(outDir, `${baseNameOf(input)}.${EXTENSION[format]}`),
+  }));
+  assertUniqueTargets(targets);
+
   const files: WrittenFile[] = [];
-  for (const input of inputs) {
+  for (const { input, target } of targets) {
     let pipeline = sharp(
       input,
       density === undefined ? {} : { density },
     ).autoOrient();
 
     if (options.width !== undefined) {
+      // A vector has no native resolution, so rendering it large is not
+      // upscaling and the guard must not clamp it to its nominal viewBox.
+      const isVector = (await sharp(input).metadata()).format === "svg";
       pipeline = pipeline.resize({
         width: options.width,
-        withoutEnlargement: !allowUpscale,
+        withoutEnlargement: !allowUpscale && !isVector,
       });
     }
     if (keepMetadata) pipeline = pipeline.withMetadata();
 
-    const target = path.join(outDir, `${baseNameOf(input)}.${EXTENSION[format]}`);
     if (path.resolve(target) === path.resolve(input)) {
       throw new Error(
         `Refusing to overwrite the source: "${input}". Use --out to write elsewhere.`,

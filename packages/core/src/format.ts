@@ -37,3 +37,27 @@ export function slugify(value: string): string {
 export function baseNameOf(file: string): string {
   return path.basename(file, path.extname(file));
 }
+
+/**
+ * Reject input sets whose outputs would land on the same path.
+ *
+ * Output names are derived from the input's basename, so `a/logo.png` and
+ * `b/logo.png` in one batch both want `logo.webp` and the second silently
+ * destroys the first. Failing up front beats writing a directory that is
+ * quietly missing files.
+ */
+export function assertUniqueTargets(
+  pairs: readonly { input: string; target: string }[],
+): void {
+  const seen = new Map<string, string>();
+  for (const { input, target } of pairs) {
+    const previous = seen.get(target);
+    if (previous !== undefined) {
+      throw new Error(
+        `"${previous}" and "${input}" would both be written to "${target}". ` +
+          "Rename one, or convert them in separate runs.",
+      );
+    }
+    seen.set(target, input);
+  }
+}

@@ -4,7 +4,7 @@ import sharp from "sharp";
 import type { Sharp } from "sharp";
 
 import type { OperationResult, RasterFormat, WrittenFile } from "../types.js";
-import { EXTENSION, baseNameOf, formatFromPath } from "../format.js";
+import { EXTENSION, assertUniqueTargets, baseNameOf, formatFromPath } from "../format.js";
 import { encodeImage } from "../encode.js";
 import { parseRatio, ratioValue, type Ratio } from "./ratio.js";
 
@@ -121,6 +121,18 @@ export async function cropImage(options: CropOptions): Promise<OperationResult> 
   if (inputs.length === 0) throw new Error("At least one input image is required.");
   const ratio = parseRatio(options.ratio);
   await mkdir(outDir, { recursive: true });
+
+  assertUniqueTargets(
+    inputs.map((input) => ({
+      input,
+      target: path.join(
+        outDir,
+        `${baseNameOf(input)}-${ratio.slug}.${
+          EXTENSION[options.format ?? formatFromPath(input) ?? "png"]
+        }`,
+      ),
+    })),
+  );
 
   const files: WrittenFile[] = [];
   for (const input of inputs) {

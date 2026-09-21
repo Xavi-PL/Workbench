@@ -1,10 +1,11 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { convertImage } from "../src/convert/index.js";
+import { assertUniqueTargets } from "../src/format.js";
 
 let dir: string;
 let png: string;
@@ -44,34 +45,43 @@ afterAll(async () => {
 
 describe("convertImage", () => {
   it("converts png to webp", async () => {
-    const out = path.join(dir, "webp");
-    const result = await convertImage({ inputs: [png], format: "webp", outDir: out });
+    const result = await convertImage({
+      inputs: [png],
+      format: "webp",
+      outDir: path.join(dir, "webp"),
+    });
     expect(result.files).toHaveLength(1);
-    expect(result.files[0]!.format).toBe("webp");
     expect((await sharp(result.files[0]!.path).metadata()).format).toBe("webp");
   });
 
   it("rasterises svg input at the requested width without extra flags", async () => {
-    const out = path.join(dir, "svg-wide");
     const result = await convertImage({
       inputs: [svg],
       format: "png",
-      outDir: out,
+      outDir: path.join(dir, "svg-wide"),
       width: 512,
-      allowUpscale: true,
     });
     expect(result.files[0]).toMatchObject({ width: 512, height: 512 });
   });
 
-  it("mattes transparency when going to jpeg instead of compositing to black", async () => {
-    const out = path.join(dir, "jpg");
+  it("renders a vector past its nominal size without allowUpscale", async () => {
+    // A 64px viewBox is not a resolution limit; clamping to it would be wrong.
+    const result = await convertImage({
+      inputs: [svg],
+      format: "png",
+      outDir: path.join(dir, "vec"),
+      width: 256,
+    });
+    expect(result.files[0]!.width).toBe(256);
+  });
+
+  it("mattes transparency for jpeg instead of compositing to black", async () => {
     const result = await convertImage({
       inputs: [png],
       format: "jpeg",
-      outDir: out,
+      outDir: path.join(dir, "jpg"),
       background: "#FFFFFF",
     });
-    // sample the transparent half; it should be the matte, not black
     const { data } = await sharp(result.files[0]!.path)
       .extract({ left: 60, top: 10, width: 4, height: 4 })
       .raw()
@@ -87,15 +97,32 @@ describe("convertImage", () => {
     ).rejects.toThrow(/Refusing to overwrite/);
   });
 
-  it("does not upscale unless asked", async () => {
-    const out = path.join(dir, "big");
+  it("rejects a batch whose outputs would collide", async () => {
+    const other = await mkdtemp(path.join(tmpdir(), "wb-twin-"));
+    const twin = path.join(other, "source.png");
+    await sharp(png).toFile(twin);
+    try {
+      await expect(
+        convertImage({
+          inputs: [png, twin],
+          format: "webp",
+          outDir: path.join(dir, "collide"),
+        }),
+      ).rejects.toThrow(/would both be written to/);
+    } finally {
+      await rm(other, { recursive: true, force: true });
+    }
+  });
+
+  it("does not upscale a raster unless asked", async () => {
     const clamped = await convertImage({
-      inputs: [png], format: "png", outDir: out, width: 400,
+      inputs: [png], format: "png", outDir: path.join(dir, "big"), width: 400,
     });
     expect(clamped.files[0]!.width).toBe(80);
 
     const allowed = await convertImage({
-      inputs: [png], format: "png", outDir: path.join(dir, "big2"), width: 400, allowUpscale: true,
+      inputs: [png], format: "png", outDir: path.join(dir, "big2"),
+      width: 400, allowUpscale: true,
     });
     expect(allowed.files[0]!.width).toBe(400);
   });
@@ -114,9 +141,30 @@ describe("convertImage", () => {
       inputs: [withExif], format: "jpeg", outDir: path.join(dir, "s"),
     });
     const kept = await convertImage({
-      inputs: [withExif], format: "jpeg", outDir: path.join(dir, "k"), keepMetadata: true,
+      inputs: [withExif], format: "jpeg", outDir: path.join(dir, "k"),
+      keepMetadata: true,
     });
     expect((await sharp(stripped.files[0]!.path).metadata()).orientation).toBeUndefined();
     expect((await sharp(kept.files[0]!.path).metadata()).orientation).toBeDefined();
+  });
+});
+
+describe("assertUniqueTargets", () => {
+  it("passes when every target is distinct", () => {
+    expect(() =>
+      assertUniqueTargets([
+        { input: "a/one.png", target: "out/one.webp" },
+        { input: "b/two.png", target: "out/two.webp" },
+      ]),
+    ).not.toThrow();
+  });
+
+  it("names both colliding inputs", () => {
+    expect(() =>
+      assertUniqueTargets([
+        { input: "a/logo.png", target: "out/logo.webp" },
+        { input: "b/logo.svg", target: "out/logo.webp" },
+      ]),
+    ).toThrow(/a\/logo\.png[\s\S]*b\/logo\.svg/);
   });
 });

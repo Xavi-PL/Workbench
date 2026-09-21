@@ -54,6 +54,8 @@ Output is named `<input>-<ratio>.<ext>`, e.g. `photo-16x9.jpg`.
   landscape are framed as they are actually displayed.
 - **EXIF is stripped by default**, which also removes GPS coordinates. Pass
   `--keep-metadata` only when the metadata is wanted.
+- **Refuses colliding batches.** Two inputs with the same basename from
+  different folders would write to the same output, so that errors up front.
 - **Never upscales** unless `--allow-upscale` is given; a larger `--width` than
   the source is clamped rather than producing invented pixels.
 
