@@ -34,3 +34,21 @@ export function number(value: string, flag: string): number {
   }
   return parsed;
 }
+
+const SIZE_UNITS: Record<string, number> = {
+  b: 1,
+  kb: 1024,
+  k: 1024,
+  mb: 1024 * 1024,
+  m: 1024 * 1024,
+};
+
+/** Parse a byte budget: "200kb", "1.5mb", "204800". Binary units throughout. */
+export function bytes(value: string, flag: string): number {
+  const match = /^(\d+(?:\.\d+)?)\s*(b|kb|k|mb|m)?$/i.exec(value.trim());
+  const unit = SIZE_UNITS[(match?.[2] ?? "b").toLowerCase()];
+  if (!match || unit === undefined) {
+    throw new Error(`${flag} expects a size like 200kb or 1.5mb, got "${value}"`);
+  }
+  return Math.round(Number(match[1]) * unit);
+}
