@@ -1,0 +1,20 @@
+{
+  "name": "workbench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent skills, a CLI, and a local studio UI for image and promo tooling.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "wb": "pnpm --filter @workbench/cli exec wb"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  }
+}

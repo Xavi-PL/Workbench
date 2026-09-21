@@ -1,0 +1,8 @@
+{
+  "name": "workbench",
+  "description": "Image and promo tooling: gradient avatars, cropping, format conversion, compression, and banner generation.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Xavi Pineda"
+  }
+}
