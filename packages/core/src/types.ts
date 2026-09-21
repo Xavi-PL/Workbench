@@ -7,10 +7,13 @@ export type RasterFormat = "png" | "jpeg" | "webp" | "avif";
  */
 export type InputFormat = RasterFormat | "svg";
 
+/** Formats an operation can write. SVG is available where output is vector. */
+export type OutputFormat = RasterFormat | "svg";
+
 /** A file written to disk. Every core operation reports what it produced. */
 export interface WrittenFile {
   path: string;
-  format: RasterFormat;
+  format: OutputFormat;
   width: number;
   height: number;
   bytes: number;

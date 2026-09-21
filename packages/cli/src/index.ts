@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 
+import { registerAvatar } from "./commands/avatar.js";
+
 const program = new Command();
 
 program
@@ -8,6 +10,6 @@ program
   .description("workbench - image and promo tooling")
   .version("0.1.0");
 
-// Subcommands are registered here as each tool lands.
+registerAvatar(program);
 
 await program.parseAsync(process.argv);
